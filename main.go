@@ -6,6 +6,7 @@ import (
 )
 
 func handlerfunc(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8") // 设置响应标头
 	if r.URL.Path == "/" {
 		fmt.Fprint(w, "<h1>Hello, 这里是 goblog! </h1>")
 	} else if r.URL.Path == "/about" {
@@ -18,6 +19,6 @@ func handlerfunc(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	http.HandleFunc("/", handlerfunc)
+	http.HandleFunc("/", handlerfunc) // http.HandleFunc 里传参的 / 意味着 任意路径
 	http.ListenAndServe(":3000", nil)
 }
