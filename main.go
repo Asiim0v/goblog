@@ -37,10 +37,44 @@ func notFoundHandler(w http.ResponseWriter, r *http.Request) {
 		"<p>如有疑惑，请联系我们。</p>")
 }
 
+// Article 对应一条文章数据
+type Article struct {
+	Title, Body string
+	ID          int64
+}
+
 func articlesShowHandler(w http.ResponseWriter, r *http.Request) {
+	// 1. 获取 URL 参数
 	vars := mux.Vars(r)
 	id := vars["id"]
-	fmt.Fprint(w, "文章 ID: "+id)
+
+	// 2. 读取对应的文章数据， QueryRow 在多参数情况下封装了 Prepare 方法的调用
+	article := Article{}
+	query := "SELECT * FROM articles WHERE id = ?"
+	// Scan() 将查询结果赋值到 article struct 中，传参应与数据表字段的顺序保持一致
+	err := db.QueryRow(query, id).Scan(&article.ID, &article.Title, &article.Body)
+
+	// 3. 如果出现错误
+	if err != nil {
+		if err == sql.ErrNoRows {
+			// 3.1 数据未找到
+			w.WriteHeader(http.StatusNotFound)
+			fmt.Fprint(w, "404 文章未找到")
+		} else {
+			// 3.2 数据库错误
+			checkError(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprint(w, "500 服务器内部错误")
+		}
+	} else {
+		// 4. 读取成功， 显示文章
+		tmpl, err := template.ParseFiles("resources/views/articles/show.gohtml")
+		checkError(err)
+
+		err = tmpl.Execute(w, article)
+		checkError(err)
+	}
+
 }
 
 func articlesIndexHandler(w http.ResponseWriter, r *http.Request) {
