@@ -147,9 +147,9 @@ func articlesCreateHandler(w http.ResponseWriter, r *http.Request) {
 func initDB() {
 	var err error
 	config := mysql.Config{
-		User:                 "Asiim0v",
+		User:                 "root",
 		Passwd:               "535128",
-		Addr:                 "127.0.0.1:33060",
+		Addr:                 "127.0.0.1:3306",
 		Net:                  "tcp",
 		DBName:               "goblog",
 		AllowNativePasswords: true,
