@@ -177,86 +177,6 @@ type ArticlesFormData struct {
 	Errors      map[string]string
 }
 
-func articlesStoreHandler(w http.ResponseWriter, r *http.Request) {
-	title := r.PostFormValue("title")
-	body := r.PostFormValue("body")
-
-	errors := validateArticleFormData(title, body)
-
-	// 检查是否有错误
-	if len(errors) == 0 {
-		// 将验证成功的用户数据保存到数据库中
-		lastInsertID, err := saveArticleToDB(title, body)
-		if lastInsertID > 0 {
-			fmt.Fprint(w, "插入成功, ID为"+strconv.FormatInt(lastInsertID, 10))
-		} else {
-			logger.LogError(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprint(w, "500 服务器内部错误")
-		}
-
-		fmt.Fprint(w, "验证通过!<br>")
-		fmt.Fprintf(w, "title 的值为: %v <br>", title)
-		fmt.Fprintf(w, "title 的长度为: %v <br>", utf8.RuneCountInString(title))
-		fmt.Fprintf(w, "body 的值为: %v <br>", body)
-		fmt.Fprintf(w, "body 的长度为: %v <br>", utf8.RuneCountInString(body))
-	} else {
-		// 错误时重新显示表单，并显示错误提示
-		// 发生错误时，也就是 errors 的长度大于零时，我们会把 errors 传参到 HTML 中进行渲染
-
-		storeURL, _ := router.Get("articles.store").URL()
-
-		data := ArticlesFormData{
-			Title:  title,
-			Body:   body,
-			URL:    storeURL,
-			Errors: errors,
-		}
-		tmpl, err := template.ParseFiles("resources/views/articles/create.gohtml")
-		if err != nil {
-			panic(err)
-		}
-
-		err = tmpl.Execute(w, data)
-		if err != nil {
-			panic(err)
-		}
-	}
-}
-
-func saveArticleToDB(title string, body string) (int64, error) {
-	// 变量初始化
-	var (
-		id   int64
-		err  error
-		rs   sql.Result
-		stmt *sql.Stmt
-	)
-
-	// 1. 获取一个 prepare 声明语句
-	stmt, err = db.Prepare("INSERT INTO articles (title, body) VALUES(?,?)")
-	// 例行的错误检测
-	if err != nil {
-		return 0, err
-	}
-
-	// 2. 在此函数运行结束后关闭此语句, 防止占用 SQL 连接
-	defer stmt.Close()
-
-	// 3. 执行请求, 传参进入绑定的内容
-	rs, err = stmt.Exec(title, body)
-	if err != nil {
-		return 0, err
-	}
-
-	// 4. 插入成功的话, 返回自增 ID
-	if id, err = rs.LastInsertId(); id > 0 {
-		return id, err
-	}
-
-	return 0, err
-}
-
 func forceHTMLMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// 1. 设置标头
@@ -276,25 +196,6 @@ func removeTrailingSlash(next http.Handler) http.Handler {
 		// 2. 将请求传递下去
 		next.ServeHTTP(w, r)
 	})
-}
-
-func articlesCreateHandler(w http.ResponseWriter, r *http.Request) {
-	storeURL, _ := router.Get("articles.store").URL()
-	data := ArticlesFormData{
-		Title:  "",
-		Body:   "",
-		URL:    storeURL,
-		Errors: nil,
-	}
-	tmpl, err := template.ParseFiles("resources/views/articles/create.gohtml")
-	if err != nil {
-		panic(err)
-	}
-
-	err = tmpl.Execute(w, data)
-	if err != nil {
-		panic(err)
-	}
 }
 
 func articlesDeleteHandler(w http.ResponseWriter, r *http.Request) {
@@ -356,9 +257,6 @@ func main() {
 
 	// 列表 or 创建
 
-	router.HandleFunc("/articles", articlesStoreHandler).Methods("POST").Name("articles.store")
-
-	router.HandleFunc("/articles/create", articlesCreateHandler).Methods("GET").Name("articles.create")
 	router.HandleFunc("/articles/{id:[0-9]+}/edit", articlesEditHandler).Methods("GET").Name("articles.edit")
 	router.HandleFunc("/articles/{id:[0-9]+}", articlesUpdateHandler).Methods("POST").Name("articles.update")
 	router.HandleFunc("/articles/{id:[0-9]+}/delete", articlesDeleteHandler).Methods("POST").Name("articles.delete")
