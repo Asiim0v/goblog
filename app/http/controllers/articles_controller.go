@@ -1,13 +1,15 @@
 package controllers
 
 import (
-	"database/sql"
 	"fmt"
+	"goblog/app/models/article"
 	"goblog/pkg/logger"
 	"goblog/pkg/route"
 	"goblog/pkg/types"
 	"net/http"
 	"text/template"
+
+	"gorm.io/gorm"
 )
 
 // ArticlesController 文章相关页面
@@ -19,12 +21,12 @@ func (*ArticlesController) Show(w http.ResponseWriter, r *http.Request) {
 	// 1. 获取 URL 参数
 	id := route.GetRouteVariable("id", r)
 
-	// 2. 读取对应的文章数据， QueryRow 在多参数情况下封装了 Prepare 方法的调用
-	article, err := getArticleByID(id)
+	// 2. 读取对应的文章数据
+	article, err := article.Get(id)
 
 	// 3. 如果出现错误
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if err == gorm.ErrRecordNotFound {
 			// 3.1 数据未找到
 			w.WriteHeader(http.StatusNotFound)
 			fmt.Fprint(w, "404 文章未找到")
@@ -37,8 +39,8 @@ func (*ArticlesController) Show(w http.ResponseWriter, r *http.Request) {
 	} else {
 		// 4. 读取成功， 显示文章
 		tmpl, err := template.New("show.gohtml").Funcs(template.FuncMap{
-			"RouteName2URL": route.Name2URL,
-			"Int64ToString": types.Int64ToString,
+			"RouteName2URL":  route.Name2URL,
+			"Uint64ToString": types.Uint64ToString,
 		}).ParseFiles("resources/views/articles/show.gohtml")
 		logger.LogError(err)
 
