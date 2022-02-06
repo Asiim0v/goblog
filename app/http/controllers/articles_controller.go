@@ -60,16 +60,14 @@ func (*ArticlesController) Index(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// ArticlesFormData 创建博文表单数据
-type ArticlesFormData struct {
-	Title, Body string
-	Article     article.Article
-	Errors      map[string]string
-}
-
 // Create 文章创建页面
 func (*ArticlesController) Create(w http.ResponseWriter, r *http.Request) {
-	view.Render(w, ArticlesFormData{}, "articles.create", "articles._form_field")
+	view.Render(w, view.D{
+		"Title":   "",
+		"Body":    "",
+		"Article": article.Article{},
+		"Errors":  make(map[string]string),
+	}, "articles.create", "articles._form_field")
 }
 
 // 封装表单验证逻辑
@@ -117,10 +115,10 @@ func (*ArticlesController) Store(w http.ResponseWriter, r *http.Request) {
 	} else {
 		// 错误时重新显示表单，并显示错误提示
 		// 发生错误时，也就是 errors 的长度大于零时，我们会把 errors 传参到 HTML 中进行渲染
-		view.Render(w, ArticlesFormData{
-			Title:  title,
-			Body:   body,
-			Errors: errors,
+		view.Render(w, view.D{
+			"Title":  title,
+			"Body":   body,
+			"Errors": errors,
 		}, "articles.create", "articles._form_field")
 	}
 }
@@ -147,11 +145,11 @@ func (*ArticlesController) Edit(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		// 4. 读取成功, 显示编辑文章表单
-		view.Render(w, ArticlesFormData{
-			Title:   _article.Title,
-			Body:    _article.Body,
-			Article: _article,
-			Errors:  nil,
+		view.Render(w, view.D{
+			"Title":   _article.Title,
+			"Body":    _article.Body,
+			"Article": _article,
+			"Errors":  make(map[string]string),
 		}, "articles.edit", "articles._form_field")
 	}
 }
@@ -210,11 +208,11 @@ func (*ArticlesController) Update(w http.ResponseWriter, r *http.Request) {
 			}
 		} else {
 			// 4.3 表单验证不通过, 显示理由
-			view.Render(w, ArticlesFormData{
-				Title:   title,
-				Body:    body,
-				Article: _article,
-				Errors:  errors,
+			view.Render(w, view.D{
+				"Title":   title,
+				"Body":    body,
+				"Article": _article,
+				"Errors":  errors,
 			}, "articles.edit", "articles._form_field")
 		}
 	}
