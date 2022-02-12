@@ -27,6 +27,16 @@ func Get(idstr string) (User, error) {
 	return user, nil
 }
 
+// All 获取所有用户数据
+func All() ([]User, error) {
+	var users []User
+	if err := model.DB.Find(&users).Error; err != nil {
+		return users, err
+	}
+
+	return users, nil
+}
+
 // GetByEmail 通过 Email 获取用户
 func GetByEmail(email string) (User, error) {
 	var user User
