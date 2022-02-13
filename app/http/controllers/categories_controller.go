@@ -59,7 +59,7 @@ func (cc *CategoriesController) Show(w http.ResponseWriter, r *http.Request) {
 	id := route.GetRouteVariable("id", r)
 
 	// 2. 读取对应的数据
-	_category, err := category.Get(id)
+	_category, _ := category.Get(id)
 
 	// 3. 获取结果集
 	articles, pagerData, err := article.GetByCategoryID(_category.GetStringID(), r, 2)
