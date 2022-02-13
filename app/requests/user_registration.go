@@ -1,38 +1,10 @@
 package requests
 
 import (
-	"errors"
-	"fmt"
 	"goblog/app/models/user"
-	"goblog/pkg/model"
-	"strings"
 
 	"github.com/thedevsaddam/govalidator"
 )
-
-// 参考 govalidator 项目文档创建自定义规则, 此方法会在初始化时执行
-func init() {
-	// 自定义规则例如: not_exists:users,email
-	govalidator.AddCustomRule("not_exists", func(field string, rule string, message string, value interface{}) error {
-		rng := strings.Split(strings.TrimPrefix(rule, "not_exists:"), ",")
-
-		tableName := rng[0]
-		dbFiled := rng[1]
-		val := value.(string)
-
-		var count int64
-		model.DB.Table(tableName).Where(dbFiled+" = ?", val).Count(&count)
-
-		if count != 0 {
-			if message != "" {
-				return errors.New(message)
-			}
-
-			return fmt.Errorf("%v 已被占用", val)
-		}
-		return nil
-	})
-}
 
 // 函数名称命名规则是 Validate{表单名称}Form
 // ValidateRegistrationForm 验证注册表单, 返回 errs 长度等于零即通过

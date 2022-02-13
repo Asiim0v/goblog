@@ -5,7 +5,7 @@ import (
 	"goblog/pkg/auth"
 )
 
-// CanModifyArticle 是否允许修改话题
+// CanModifyArticle 是否允许修改文章
 func CanModifyArticle(_article article.Article) bool {
 	return auth.User().ID == _article.UserID
 }
