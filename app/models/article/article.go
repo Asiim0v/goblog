@@ -14,8 +14,9 @@ type Article struct {
 	Title string `gorm:"type:varchar(255);not null;" valid:"title"`
 	Body  string `gorm:"type:longtext;not null;" valid:"body"`
 
-	UserID uint64 `gorm:"not null;index"`
-	User   user.User
+	UserID     uint64 `gorm:"not null;index"`
+	User       user.User
+	CategoryID uint64 `gorm:"not null;default:4;index"`
 }
 
 // Link 方法用来生成文章链接
